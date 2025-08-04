@@ -12,8 +12,8 @@
       "name": "Telegram Trigger",
       "type": "n8n-nodes-base.telegramTrigger",
       "position": [
-        -720,
-        180
+        -280,
+        100
       ],
       "webhookId": "b178f034-9997-4832-9bb4-a43c3015506e",
       "typeVersion": 1.1
@@ -26,8 +26,8 @@
       "name": "Embeddings OpenAI",
       "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
       "position": [
-        220,
-        400
+        480,
+        740
       ],
       "typeVersion": 1
     },
@@ -40,8 +40,8 @@
       "name": "Default Data Loader",
       "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
       "position": [
-        360,
-        400
+        620,
+        740
       ],
       "typeVersion": 1
     },
@@ -55,8 +55,8 @@
       "name": "Recursive Character Text Splitter",
       "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
       "position": [
-        440,
-        620
+        700,
+        960
       ],
       "typeVersion": 1
     },
@@ -68,7 +68,7 @@
       "name": "Stop and Error",
       "type": "n8n-nodes-base.stopAndError",
       "position": [
-        -280,
+        -180,
         780
       ],
       "typeVersion": 1
@@ -83,7 +83,7 @@
       "name": "Question and Answer Chain",
       "type": "@n8n/n8n-nodes-langchain.chainRetrievalQa",
       "position": [
-        -780,
+        -700,
         440
       ],
       "typeVersion": 1.3
@@ -95,7 +95,7 @@
       "type": "@n8n/n8n-nodes-langchain.retrieverVectorStore",
       "position": [
         -740,
-        620
+        780
       ],
       "typeVersion": 1
     },
@@ -113,8 +113,8 @@
       "name": "Pinecone Vector Store1",
       "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
       "position": [
-        -780,
-        800
+        -740,
+        960
       ],
       "typeVersion": 1,
       "credentials": {
@@ -133,32 +133,32 @@
       "name": "Groq Chat Model",
       "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
       "position": [
-        -880,
-        600
+        -1120,
+        860
       ],
       "typeVersion": 1
     },
     {
       "parameters": {
         "content": "# Insert data into the database\nDownload the file from Telegram, divide it into smaller parts, and upload those into the Pinecone index. Once the process is complete, send a message on Telegram to notify the user that everything is done.",
-        "height": 873.6068151028411,
-        "width": 1139.5159692915001,
+        "height": 954,
+        "width": 1320,
         "color": 2
       },
       "id": "0c57f699-97fd-4bcf-a58c-5a93501ee98e",
       "name": "Sticky Note",
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        0,
-        0
+        160,
+        340
       ],
       "typeVersion": 1
     },
     {
       "parameters": {
         "content": "# Interact with the Database\n\n1. **Capture** the user’s message.\n2. **Search** for matching chunks in the vector store.\n3. **Forward** those chunks to the model.\n\nThe model will use the retrieved context to generate a clear and accurate response.",
-        "height": 806.8716167324012,
-        "width": 1344.7918019808176,
+        "height": 947,
+        "width": 1345,
         "color": 2
       },
       "id": "7d97c465-7dba-4ba9-9d6b-9b36f5ad2aea",
@@ -198,8 +198,8 @@
       "name": "Check If is a document",
       "type": "n8n-nodes-base.if",
       "position": [
-        -280,
-        180
+        -60,
+        100
       ],
       "typeVersion": 2
     },
@@ -211,8 +211,8 @@
       "name": "Change to application/pdf",
       "type": "n8n-nodes-base.code",
       "position": [
-        200,
-        160
+        460,
+        500
       ],
       "typeVersion": 2
     },
@@ -225,8 +225,8 @@
       "name": "Telegram get File",
       "type": "n8n-nodes-base.telegram",
       "position": [
-        20,
-        160
+        280,
+        500
       ],
       "typeVersion": 1.2
     },
@@ -238,8 +238,8 @@
       "name": "Embeddings",
       "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
       "position": [
-        -600,
-        1020
+        -660,
+        1120
       ],
       "typeVersion": 1
     },
@@ -255,8 +255,8 @@
       "name": "Telegram Response",
       "type": "n8n-nodes-base.telegram",
       "position": [
-        -340,
-        500
+        -320,
+        620
       ],
       "typeVersion": 1.2,
       "credentials": {
@@ -279,8 +279,8 @@
       "name": "Telegram Response about Database",
       "type": "n8n-nodes-base.telegram",
       "position": [
-        900,
-        160
+        1160,
+        500
       ],
       "typeVersion": 1.2,
       "onError": "continueErrorOutput"
@@ -293,8 +293,8 @@
       "name": "Stop and Error1",
       "type": "n8n-nodes-base.stopAndError",
       "position": [
-        900,
-        520
+        1160,
+        860
       ],
       "typeVersion": 1
     },
@@ -313,8 +313,8 @@
       "name": "Pinecone Vector Store",
       "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
       "position": [
-        380,
-        160
+        640,
+        500
       ],
       "typeVersion": 1,
       "credentials": {
@@ -330,8 +330,8 @@
       "name": "Limit to 1",
       "type": "n8n-nodes-base.limit",
       "position": [
-        720,
-        160
+        980,
+        500
       ],
       "typeVersion": 1
     }
@@ -528,7 +528,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "d6d865d7-2d59-41db-bd11-f9977af4a6a7",
+  "versionId": "2353d0dd-98ad-4b70-a866-5e074509c6eb",
   "meta": {
     "instanceId": "3e52bb5120dd343a0f14c058ead8f8920f2a26dabe38f06d535d69e6800da0fb"
   },
