@@ -1,0 +1,1584 @@
+{
+  "name": "aguazul-wa-chatbot-n8n",
+  "nodes": [
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        720,
+        160
+      ],
+      "id": "b4fa08e0-1e94-40e2-9d29-0c4fa017a3da",
+      "name": "Wait",
+      "webhookId": "[YOUR_WEBHOOK_ID]"
+    },
+    {
+      "parameters": {
+        "operation": "push",
+        "list": "={{ $json.body.data.key.remoteJid }}",
+        "messageData": "={{ $json.body.data.message.conversation }}",
+        "tail": true
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        380,
+        140
+      ],
+      "id": "9ebbccef-6a7f-4bd4-888b-5cfbaedb5eb8",
+      "name": "TextMemory",
+      "credentials": {
+        "redis": {
+          "id": "[YOUR_CREDENTIALS]",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "propertyName": "GetMemory1",
+        "key": "={{ $json.body.data.key.remoteJid }}",
+        "keyType": "list",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        540,
+        40
+      ],
+      "id": "cee58397-03d5-4f6f-8602-11aa6a06ecc5",
+      "name": "GetMomory1",
+      "credentials": {
+        "redis": {
+          "id": "[YOUR_CREDENTIALS]",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "propertyName": "GetMemory2",
+        "key": "={{ $('Execute Workflow Trigger').last().json.body.data.key.remoteJid }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        880,
+        60
+      ],
+      "id": "178cb00f-495d-419d-a96c-87792f6dd175",
+      "name": "GetMomory2",
+      "credentials": {
+        "redis": {
+          "id": "[YOUR_CREDENTIALS]",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        320,
+        1100
+      ],
+      "id": "4ae538c0-5241-417b-abb3-d77de3a38997",
+      "name": "Wait1",
+      "webhookId": "[YOUR_WEBHOOK_ID]"
+    },
+    {
+      "parameters": {
+        "content": "## Handle Users multiple messages.\n",
+        "height": 500,
+        "width": 1640
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        20,
+        -20
+      ],
+      "id": "b0c8bdd2-1d68-41c8-b992-a4055ed65c30",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://[YOUR_API_URL]/message/sendMedia/[YOUR_INSTANCE]",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "[YOUR_API_KEY]"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"number\": \"{{ $('Execute Workflow Trigger').item.json.body.data.key.remoteJid }}\",\n    \"mediatype\": \"image\", \n    \"mimetype\": \"image/png\",\n    \"caption\": \"Olá, {{ $item(\"0\").$node[\"Execute Workflow Trigger\"].json[\"body\"][\"data\"][\"pushName\"] }}! Seja bem-vindo(a) à Aguazul! 💧😊\",\n    \"media\": \"https://[YOUR_MEDIA_URL]\",  \n    \"fileName\": \"Imagem.jpg\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        140,
+        1240
+      ],
+      "id": "25ea0379-a42a-4141-a22f-07ad63e737cf",
+      "name": "Initial Media"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://[YOUR_API_URL]/message/sendText/[YOUR_INSTANCE]",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "[YOUR_API_KEY]"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"number\": \"{{ $item(\"0\").$node[\"Execute Workflow Trigger\"].json[\"body\"][\"data\"][\"key\"][\"remoteJid\"] }}\",\n    \"text\": \"Estou aqui para matar a sua sede de soluções, assim como uma boa água mineral mata a sede de verdade. 😊\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        1260
+      ],
+      "id": "bf5a8b5e-0b9c-4143-b6d9-0551d30ac09f",
+      "name": "Bot Introduction"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://[YOUR_API_URL]/message/sendText/[YOUR_INSTANCE]",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "[YOUR_API_KEY]"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"number\": \"{{ $item(\"0\").$node[\"Execute Workflow Trigger\"].json[\"body\"][\"data\"][\"key\"][\"remoteJid\"] }}\",\n    \"text\": \"Aqui estão algumas formas como posso te ajudar:\\n\\n*Pedido* 💧\\n*Dúvida* 🙋🏻\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1260,
+        1260
+      ],
+      "id": "34c93665-e15b-4f9b-bee1-ac905949d836",
+      "name": "Initial Menu"
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1060,
+        1120
+      ],
+      "id": "37cd7603-2e5a-4cad-94db-2b8649e0b532",
+      "name": "Wait4",
+      "webhookId": "[YOUR_WEBHOOK_ID]"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://[YOUR_API_URL]/message/sendText/[YOUR_INSTANCE]",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "[YOUR_API_KEY]"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"number\": \"{{ $item(\"0\").$node[\"Execute Workflow Trigger\"].json[\"body\"][\"data\"][\"key\"][\"remoteJid\"] }}\",\n    \"text\": \"Eu sou a Julia, a assistente virtual do Paulo da Aguazul!\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        520,
+        1240
+      ],
+      "id": "29512799-fa96-48ef-bf44-05c6b378aa94",
+      "name": "Initial Media1"
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        700,
+        1120
+      ],
+      "id": "55f37422-d072-4b2d-8995-63dbdb031c8b",
+      "name": "Wait2",
+      "webhookId": "[YOUR_WEBHOOK_ID]"
+    },
+    {
+      "parameters": {
+        "content": "## Bot Message Classifier",
+        "height": 500,
+        "width": 1540
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1720,
+        -20
+      ],
+      "id": "4419fee0-18a0-483c-b967-45d25cc8b86a",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        1960,
+        280
+      ],
+      "id": "175cb31d-c891-4023-a334-08bae17e6d62",
+      "name": "OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "[YOUR_CREDENTIALS]",
+          "name": "OpenAI API key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "{{ $item(\"0\").$node[\"trigger\"].json[\"body\"][\"data\"][\"key\"][\"remoteJid\"] }}",
+        "contextWindowLength": 30
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        2140,
+        260
+      ],
+      "id": "b45e2c37-ed0a-4825-be04-e8dda31dc8bc",
+      "name": "Window Buffer Memory1"
+    },
+    {
+      "parameters": {
+        "content": "## FAQs Bot",
+        "height": 940,
+        "width": 1560,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1700,
+        1000
+      ],
+      "id": "05e00fd3-19b4-42e0-b81f-d09ba73d73c1",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        1940,
+        1340
+      ],
+      "id": "5a94cf6b-9bbb-434c-9045-a98cd120e74f",
+      "name": "OpenAI1",
+      "credentials": {
+        "openAiApi": {
+          "id": "[YOUR_CREDENTIALS]",
+          "name": "OpenAI API key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Execute Workflow Trigger').last().json.body.data.key.remoteJid }}",
+        "contextWindowLength": 20
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        2100,
+        1360
+      ],
+      "id": "cb85b182-66ed-46c9-a523-0c8af9f30838",
+      "name": "Window Buffer Memory2"
+    },
+    {
+      "parameters": {
+        "content": "## Welcome Message\n",
+        "height": 480,
+        "width": 1620,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        20,
+        1000
+      ],
+      "id": "bc02fb44-9057-4a05-b2c1-b7cd55b2725a",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "b67b5b55-ebd4-411f-b551-e452e683ec7b",
+                    "leftValue": "={{ $item(\"0\").$node[\"trigger\"].json[\"body\"][\"data\"][\"key\"][\"remoteJid\"] }}",
+                    "rightValue": "[YOUR_PHONE_NUMBER]@s.whatsapp.net",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Willian"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "a5ef255f-1958-4e3d-80c4-c947790cf863",
+                    "leftValue": "={{ $item(\"0\").$node[\"trigger\"].json[\"body\"][\"data\"][\"key\"][\"remoteJid\"] }}",
+                    "rightValue": "[YOUR_PHONE_NUMBER]@s.whatsapp.net",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Vitor Personal"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "b0821014-c094-4ec1-8178-b840518c17fc",
+                    "leftValue": "",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        100,
+        100
+      ],
+      "id": "bf5adbf6-f59f-4923-b380-d7b7db91f5e2",
+      "name": "Access Control",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9ebf4311-a022-4346-a865-d5117ec31243",
+              "name": "GetMemory1",
+              "value": "={{ $item(\"0\").$node[\"GetMomory1\"].json[\"GetMemory1\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "4e6efe96-d254-4aa6-8616-646c8bdaac2d",
+              "name": "GetMemory2",
+              "value": "={{ $item(\"0\").$node[\"GetMomory2\"].json[\"GetMemory2\"] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1060,
+        160
+      ],
+      "id": "ad0561f2-e9fa-4f84-8ca3-80e742d18a4b",
+      "name": "Mapping"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $item(\"0\").$node[\"Mapping\"].json[\"GetMemory1\"] }}",
+                    "rightValue": "={{ $item(\"0\").$node[\"Mapping\"].json[\"GetMemory2\"] }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "6f3d18bf-e4db-4c1d-9e4a-74180d25cb30",
+                    "leftValue": "",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        1240,
+        80
+      ],
+      "id": "56bf01d0-47db-4484-b62a-1e77f325ddb1",
+      "name": "Memories Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Input: GetMemory2\nconst GetMemory2 = $item(\"0\").$node[\"Mapping\"].json[\"GetMemory2\"];\n\n// Check if GetMemory2 is an array; if not, convert it into an array\nconst memoryArray = Array.isArray(GetMemory2) ? GetMemory2 : JSON.parse(GetMemory2);\n\n// Transform the array into a single string joined by a space\nconst transformedString = memoryArray.join(\" \");\n\n// Return the result as a JSON object with transformedValue as a string\nreturn [{ json: { transformedValue: transformedString } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1480,
+        180
+      ],
+      "id": "f7c0002b-00a8-4754-bcc0-c0d1578c4327",
+      "name": "Clean User's Message"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $item(\"0\").$node[\"Clean User's Message\"].json[\"transformedValue\"] }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "## STRICT CLASSIFICATION PROTOCOL  \n\n### **Role**  \nYou are a classifier. **DO NOT generate responses.**  \nYour ONLY task is to analyze user input and return **one of the exact outputs below**:  \n\n1. `FLOW = TEMPLATE INTRODUCTION`  \n2. `FLOW = BOT FAQ`  \n3. `FLOW = BOT SALESMAN`  \n\n---\n\n### **RULES**  \n✅ **Always return ONLY one of the exact labels.**  \n✅ **DO NOT generate any additional text, explanations, or responses.**  \n✅ **DO NOT rephrase, add greetings, or ask questions.**  \n✅ **If uncertain, default to `FLOW = BOT FAQ`.**  \n\n---\n\n## **CLASSIFICATION LOGIC**  \n\n### **FLOW = TEMPLATE INTRODUCTION**  \nTriggers when:  \n- The message is a **greeting** (e.g., `\"oi\"`, `\"olá\"`, `\"bom dia\"`, `\"boa tarde\"`, `\"boa noite\"`).  \n- The conversation has been inactive for **15+ minutes**.  \n\n---\n\n### **FLOW = BOT FAQ**  \nTriggers when:  \n- The user asks about **pricing, delivery, water brands, services, or business details**.  \n- The message **is NOT a greeting** and **is NOT a purchase request**.  \n- The intent is **unclear** (fallback default).  \n\nExamples:  \n✅ `\"Qual o valor do garrafão?\"` → `FLOW = BOT FAQ`  \n✅ `\"Vocês entregam na minha região?\"` → `FLOW = BOT FAQ`  \n\n---\n\n### **FLOW = BOT SALESMAN**  \nTriggers when:  \n- The user **expresses intent to order** (e.g., `\"quero comprar água\"`, `\"fazer um pedido\"`, `\"preciso de um garrafão\"`).  \n- The user **continues an active order conversation** (e.g., confirming quantity, price, or delivery details).  \n- The user responds with **short order-related confirmations** (e.g., `\"sim\"`, `\"não\"`, `\"ok\"`, phone number, address).  \n\nExamples:  \n✅ `\"Gostaria de pedir dois garrafões de 20L\"` → `FLOW = BOT SALESMAN`  \n✅ `\"Meu endereço é Rua A, número 123\"` → `FLOW = BOT SALESMAN`  \n\n🚫 **DO NOT classify a question as `FLOW = BOT SALESMAN`.**  \n❌ `\"Quantos galões vocês vendem?\"` → (WRONG)  \n\n---\n\n## **STRICT OUTPUT FORMAT**  \n- **ALWAYS return only the classification label.**  \n- **NO additional text. NO explanations. NO generated responses.**  \n- **Output must be exactly:**  "
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        2360,
+        40
+      ],
+      "id": "c5b08065-cebc-40a0-afa7-61222f7ebc37",
+      "name": "AI Agent Classifier",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $item(\"0\").$node[\"AI Agent Classifier\"].json[\"output\"] }}",
+                    "rightValue": "=FLOW = TEMPLATE INTRODUCTION",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "INTRODUCTION"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "fd7d61aa-1d65-42d5-89bb-4b4b57c6dc63",
+                    "leftValue": "={{ $item(\"0\").$node[\"AI Agent Classifier\"].json[\"output\"] }}",
+                    "rightValue": "FLOW = BOT FAQ",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "BOT FAQ"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "9af86643-94d4-41e7-907e-064ff6a5933a",
+                    "leftValue": "={{ $item(\"0\").$node[\"AI Agent Classifier\"].json[\"output\"] }}",
+                    "rightValue": "FLOW = BOT SALESMAN",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "BOT SALESMAN"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "3c3736fd-0f37-4f09-a5bf-ae73f2441c3a",
+                    "leftValue": "",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        2480,
+        600
+      ],
+      "id": "dd8d5477-6ac5-400d-8ba2-3d74018c3695",
+      "name": "Route"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $item(\"0\").$node[\"Clean User's Message\"].json[\"transformedValue\"] }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=## General Description ##\n\nIMPORTANTE: Always call the user by it's name defined in the variable {{ $item(\"0\").$node[\"Execute Workflow Trigger\"].json[\"body\"][\"data\"][\"pushName\"] }}\n\nYou are called Julia, the virtual assistant of Paulo da Aguazul. \n\nYour main purpose is to provide support to users in an educational, gentle, and efficient manner, always ensuring they receive accurate and clear information. \n\nYour communication tone must always be friendly, welcoming, and professional, responding exclusively in Portuguese.\n\nTry to emphasize that you are here to assist Paulo managing the communication, and you will let him know about everything the customer is asking or requesting.\n\nUsers can ask questions based on information stored in the Vector Store tool or rely on your general knowledge.\n\nYour ultimate goal is anser any question user's might have or if the user request a order, you must unsure to collect all the information like which water brand, galon size, confirmed address and etc.\n\nAlways send emojis and to engaje the conversation and break lines to keep it clean.\n\n----\n\nAddress: Av. Antonelo da Messina, 658 - Sítio do Piqueri, São Paulo - SP, 02318-000, Brazil\nGoogle Maps link: https://maps.app.goo.gl/UX2Gv8EstwHq6UVR7\n\n----\n\n## **FAQ About Aguazul produtcs (water galons) and services** ##\n\n**Trigger Condition:**  \nActivate when the user’s message contains a question related to:\n- Water and water brand.\n- Service Costs (pricing inquiries).\n- Delivery costs and region.\n\nFetch the correct Google Doc based on the user’s query:\n- **General business information** [aguazul-business-information]\n- **Prices:** [aguazul-prices1]\n\n**Requirements:**  \n- Accurately identify user inquiries about treatments, pricing, and care guidelines.\n- Ensure the tool fetches precise and contextually relevant information.\n- Apply consistently to all related questions within the conversation.\nIMPORTANTE: Always call the user by it's name defined in the variable {{ $item(\"0\").$node[\"Execute Workflow Trigger\"].json[\"body\"][\"data\"][\"pushName\"] }}\nAlways send emojis and to engaje the conversation and break lines to keep it clean.\n\n----\n\nAddress: Av. Parada Pinto, 2203 - Vila Amalia (Zona Norte), São Paulo - SP, 02611-003, Brazil\nGoogle Maps link: https://maps.app.goo.gl/yfW4LenEbQw16zey9"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        2160,
+        1080
+      ],
+      "id": "28bae6c4-d34e-4dc0-9d5d-db6bf9b021be",
+      "name": "AI Agent Manager",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://[YOUR_API_URL]/message/sendText/[YOUR_INSTANCE]",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "[YOUR_API_KEY]"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"number\": \"{{ $item(\"0\").$node[\"Execute Workflow Trigger\"].json[\"body\"][\"data\"][\"key\"][\"remoteJid\"] }}\",\n  \"text\": \"{{ \n    // Replace newlines with escaped newline characters to avoid JSON parsing errors\n    $('AI Agent Manager').item.json.output\n      .replace(/(\\r\\n|\\n|\\r)/gm, '\\\\n') \n      // Escape double quotes to ensure the JSON structure is valid\n      .replace(/\"/g, '\\\\\"') \n  }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2680,
+        1140
+      ],
+      "id": "04075110-4b99-4ca5-af07-ede3a29c1898",
+      "name": "POST Welcome Message"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "={{ $item(\"0\").$node[\"Execute Workflow Trigger\"].json[\"body\"][\"data\"][\"key\"][\"remoteJid\"] }}"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1460,
+        1120
+      ],
+      "id": "665dc50b-3912-461e-beb6-df23a54d2a10",
+      "name": "Clen Memory",
+      "credentials": {
+        "redis": {
+          "id": "[YOUR_CREDENTIALS]",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "={{ $item(\"0\").$node[\"Execute Workflow Trigger\"].json[\"body\"][\"data\"][\"key\"][\"remoteJid\"] }}"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        2920,
+        1160
+      ],
+      "id": "d8cd534e-79a8-4d66-9a02-52e5afeb9d95",
+      "name": "Clen Memory1",
+      "credentials": {
+        "redis": {
+          "id": "[YOUR_CREDENTIALS]",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $item(\"0\").$node[\"Clean User's Message\"].json[\"transformedValue\"] }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=# Julia - Aguazul Sales Bot Instructions\n\n## General Information\n\n**Role & Language:**\n- You are **Julia**, the virtual assistant of **Paulo da Aguazul**.\n- Your tone is **friendly, professional, and welcoming**.\n- Always respond **in Portuguese**.\n- Always **address the user by their name**:  \n  `{{ $item(\"0\").$node[\"Execute Workflow Trigger\"].json[\"body\"][\"data\"][\"pushName\"] }}`\n- Use emojis to engage the audience.\n---\n\n## Order Process Flow\n\n### 1. Identify Customer\n- When the user expresses intent to order, greet them and ask for their phone number in the system \"Por favor, digite seu telefone cadastrado.\", call the **Google Sheets [aguazul-customers-address]** to get the customer's information.\n\nThe name in the sheet can be different from {{ $item(\"0\").$node[\"Execute Workflow Trigger\"].json[\"body\"][\"data\"][\"pushName\"] }}. That's okay!\n\nAlways check the last mensagens before to ask customers phone number.\n\nAsk user's phone number only once, because the google sheet document is already setup to filter the variable {{ $('Set VAR SystemCustomerPhoneNumber') }}\n\n- If google sheet returns customer's information, confirm their **address** from the google sheet..\n- If not found, request **name, phone, and address** before proceeding.\n\n---\n\n### 2. Collect Order Details\n- Ask the customer **which product** they want.  \n  - If it’s **water**, ask:\n    - **Which brand?** (Check options in **[aguazul-prices]**)\n    - **Which gallon size?** (10L or 20L)\n    - **How many units?**  \n  - If it’s **other products** (e.g., stands or disposables), ask **quantity**.\n\n---\n\n### 3. Confirm & Calculate Price\n\t•\tLook up prices in [aguazul-prices].\n\t•\tSummarize the order:\n\t•\tCustomer name & address\n\t•\tProduct type (water, stand, or disposables)\n\t•\tBrand (if water)\n\t•\tGallon size & quantity (if water)\n\t•\tFinal price\n\t•\tConfirm the payment method:\n\t•\tDinheiro → Ask if the customer needs change and how much.\n\t•\tCartão → Inform the customer that we will send the card machine.\n\t•\tPIX → Provide the chave PIX: 11 96514-8483 | Paulo Rozendo, and ask them to send the PIX receipt.\n\t•\tAsk for confirmation before finalizing the order.\n\t•\tAt the end, inform the customer that their order will be sent to Paulo, who will deliver it as soon as possible. Aguazul thanks them for their order."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        3940,
+        1100
+      ],
+      "id": "9f8f151a-fbca-44c1-953c-c43bcf67b21e",
+      "name": "AI Agent Manager1",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://[YOUR_API_URL]/message/sendText/[YOUR_INSTANCE]",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "[YOUR_API_KEY]"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"number\": \"{{ $item(\"0\").$node[\"Execute Workflow Trigger\"].json[\"body\"][\"data\"][\"key\"][\"remoteJid\"] }}\",\n  \"text\": \"{{ \n    // Replace newlines with escaped newline characters to avoid JSON parsing errors\n    $('AI Agent Manager1').item.json.output\n      .replace(/(\\r\\n|\\n|\\r)/gm, '\\\\n') \n      // Escape double quotes to ensure the JSON structure is valid\n      .replace(/\"/g, '\\\\\"') \n  }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4440,
+        1100
+      ],
+      "id": "e3edfe16-34ea-478b-bb82-2437bb0a7953",
+      "name": "POST Welcome Message1"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "={{ $item(\"0\").$node[\"Execute Workflow Trigger\"].json[\"body\"][\"data\"][\"key\"][\"remoteJid\"] }}"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        4660,
+        1100
+      ],
+      "id": "e8bccaf0-6a8a-4e63-bc7f-7f11c7b94941",
+      "name": "Clen Memory2",
+      "credentials": {
+        "redis": {
+          "id": "[YOUR_CREDENTIALS]",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        3820,
+        1420
+      ],
+      "id": "b66f2db9-6654-4049-889a-359e30fb8d22",
+      "name": "OpenAI2",
+      "credentials": {
+        "openAiApi": {
+          "id": "[YOUR_CREDENTIALS]",
+          "name": "OpenAI API key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Execute Workflow Trigger').last().json.body.data.key.remoteJid }}",
+        "contextWindowLength": 20
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        4000,
+        1420
+      ],
+      "id": "cdf2b89e-9be2-4d11-ba81-86d051068c1d",
+      "name": "Window Buffer Memory3"
+    },
+    {
+      "parameters": {
+        "content": "## Salesman Bot",
+        "height": 940,
+        "width": 1520,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        3320,
+        1000
+      ],
+      "id": "16b3dbcf-43bd-435d-8698-add5ffc92579",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "# Aguazul WA BOT",
+        "height": 100,
+        "width": 4820,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        20,
+        -180
+      ],
+      "id": "b7f30c91-4a1b-4fdc-bdf5-613d8f212d2b",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract message from the \"Clean User's Message\" node output\nconst message = $node[\"Clean User's Message\"].json[\"transformedValue\"];\n\n// Define a regex pattern to detect a phone number (8 to 11 digits)\nconst phoneRegex = /\\b\\d{8,11}\\b/; // \\b ensures whole numbers are detected properly\n\n// Search for a phone number in the message\nconst match = message.match(phoneRegex);\n\n// Return the extracted phone number or null if not found, using the expected key\nreturn match ? [{ SystemCustomerPhoneNumber: match[0] }] : [{ SystemCustomerPhoneNumber: null }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3400,
+        1100
+      ],
+      "id": "8d71d6ae-2870-4d05-b227-459de6d28dac",
+      "name": "Check for SystemCustomerPhoneNumber"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ffea33e3-b3af-4872-9430-fbe54e6eded4",
+              "name": "SystemCustomerPhoneNumber",
+              "value": "={{ $item(\"0\").$node[\"Check for SystemCustomerPhoneNumber\"].json[\"SystemCustomerPhoneNumber\"] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3420,
+        1320
+      ],
+      "id": "2a7efa4c-8c29-45cd-b76f-80b2598891a1",
+      "name": "Set VAR SystemCustomerPhoneNumber"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "[YOUR_GOOGLE_SHEET_ID]",
+          "mode": "list",
+          "cachedResultName": "aguazul-customers-address",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/[YOUR_GOOGLE_SHEET_ID]/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "[YOUR_GOOGLE_SHEET_GID]",
+          "mode": "list",
+          "cachedResultName": "AguazulCustomersAddress",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/[YOUR_GOOGLE_SHEET_ID]/edit#gid=[YOUR_GOOGLE_SHEET_GID]"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "CUSTOMER_TEL",
+              "lookupValue": "={{ $('Set VAR SystemCustomerPhoneNumber').item.json.SystemCustomerPhoneNumber }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.5,
+      "position": [
+        4360,
+        1320
+      ],
+      "id": "5ab564d6-e1ce-4e21-8c05-c48d8cf356b3",
+      "name": "aguazul-customers-address",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "[YOUR_CREDENTIALS]",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "[YOUR_GOOGLE_SHEET_ID]",
+          "mode": "list",
+          "cachedResultName": "aguazul-prices",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/[YOUR_GOOGLE_SHEET_ID]/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/[YOUR_GOOGLE_SHEET_ID]/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.5,
+      "position": [
+        4180,
+        1360
+      ],
+      "id": "c992dcbf-ea88-4cb4-baa9-c52bc3fb6f08",
+      "name": "aguazul-prices",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "[YOUR_CREDENTIALS]",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "={{ $item(\"0\").$node[\"Execute Workflow Trigger\"].json[\"body\"][\"data\"][\"key\"][\"remoteJid\"] }}"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1640,
+        40
+      ],
+      "id": "bc6ff33e-79be-4015-ab81-02f36ac23ce2",
+      "name": "Redis",
+      "credentials": {
+        "redis": {
+          "id": "[YOUR_CREDENTIALS]",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        -380,
+        960
+      ],
+      "id": "50224684-91a0-4c53-86f5-796e3c9aed9a",
+      "name": "Execute Workflow Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "[YOUR_GOOGLE_SHEET_ID]",
+          "mode": "list",
+          "cachedResultName": "aguazul-prices",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/[YOUR_GOOGLE_SHEET_ID]/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/[YOUR_GOOGLE_SHEET_ID]/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.5,
+      "position": [
+        2460,
+        1340
+      ],
+      "id": "b2c50dd7-dc4d-4c9b-9513-45ab2306ef15",
+      "name": "aguazul-prices1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "[YOUR_CREDENTIALS]",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Consume Google Docs API with information about Aguazul business information.",
+        "operation": "get",
+        "documentURL": "[YOUR_GOOGLE_DOC_ID]"
+      },
+      "type": "n8n-nodes-base.googleDocsTool",
+      "typeVersion": 2,
+      "position": [
+        2300,
+        1360
+      ],
+      "id": "5a4a2163-802d-4f17-810d-923e67eba14e",
+      "name": "aguazul-business-information",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "[YOUR_CREDENTIALS]",
+          "name": "Google Docs account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Execute Workflow Trigger": [
+      {
+        "json": {
+          "headers": {
+            "host": "[YOUR_WEBHOOK_HOST]",
+            "user-agent": "axios/1.7.7",
+            "content-length": "827",
+            "accept-encoding": "gzip, compress, deflate, br",
+            "content-type": "application/json",
+            "x-forwarded-for": "172.18.0.1",
+            "x-forwarded-host": "[YOUR_WEBHOOK_HOST]",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "5c09aee7ab88",
+            "x-real-ip": "172.18.0.1"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "event": "messages.upsert",
+            "instance": "[YOUR_INSTANCE_NAME]",
+            "data": {
+              "key": {
+                "remoteJid": "[SENDER_PHONE_NUMBER]@s.whatsapp.net",
+                "fromMe": false,
+                "id": "[MESSAGE_ID]"
+              },
+              "pushName": "[SENDER_NAME]",
+              "status": "DELIVERY_ACK",
+              "message": {
+                "conversation": "Olá",
+                "messageContextInfo": {
+                  "deviceListMetadata": {
+                    "recipientKeyHash": "[RECIPIENT_KEY_HASH]",
+                    "recipientTimestamp": "1739127578"
+                  },
+                  "deviceListMetadataVersion": 2,
+                  "messageSecret": "[MESSAGE_SECRET]"
+                }
+              },
+              "messageType": "conversation",
+              "messageTimestamp": 1740333168,
+              "instanceId": "[INSTANCE_ID]",
+              "source": "ios"
+            },
+            "destination": "https://[YOUR_WEBHOOK_HOST]/webhook/[YOUR_INSTANCE_NAME]",
+            "date_time": "2025-02-23T14:52:48.905Z",
+            "sender": "[SENDER_PHONE_NUMBER]@s.whatsapp.net",
+            "server_url": "https://[YOUR_API_URL]",
+            "apikey": "[YOUR_API_KEY]"
+          },
+          "webhookUrl": "https://[YOUR_WEBHOOK_HOST]/webhook/[YOUR_INSTANCE_NAME]",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "GetMomory2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TextMemory": {
+      "main": [
+        [
+          {
+            "node": "GetMomory1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GetMomory1": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GetMomory2": {
+      "main": [
+        [
+          {
+            "node": "Mapping",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "Initial Media1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Initial Media": {
+      "main": [
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Bot Introduction": {
+      "main": [
+        [
+          {
+            "node": "Wait4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Initial Menu": {
+      "main": [
+        [
+          {
+            "node": "Clen Memory",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait4": {
+      "main": [
+        [
+          {
+            "node": "Initial Menu",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Initial Media1": {
+      "main": [
+        [
+          {
+            "node": "Wait2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait2": {
+      "main": [
+        [
+          {
+            "node": "Bot Introduction",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent Classifier",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent Classifier",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent Manager",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory2": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent Manager",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Access Control": {
+      "main": [
+        [],
+        [],
+        []
+      ]
+    },
+    "Mapping": {
+      "main": [
+        [
+          {
+            "node": "Memories Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Memories Merge": {
+      "main": [
+        [
+          {
+            "node": "Clean User's Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Clean User's Message": {
+      "main": [
+        [
+          {
+            "node": "Redis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent Classifier": {
+      "main": [
+        [
+          {
+            "node": "Route",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route": {
+      "main": [
+        [
+          {
+            "node": "Initial Media",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent Manager",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Check for SystemCustomerPhoneNumber",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "AI Agent Manager": {
+      "main": [
+        [
+          {
+            "node": "POST Welcome Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST Welcome Message": {
+      "main": [
+        [
+          {
+            "node": "Clen Memory1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clen Memory": {
+      "main": [
+        []
+      ]
+    },
+    "AI Agent Manager1": {
+      "main": [
+        [
+          {
+            "node": "POST Welcome Message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST Welcome Message1": {
+      "main": [
+        [
+          {
+            "node": "Clen Memory2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent Manager1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory3": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent Manager1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check for SystemCustomerPhoneNumber": {
+      "main": [
+        [
+          {
+            "node": "Set VAR SystemCustomerPhoneNumber",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set VAR SystemCustomerPhoneNumber": {
+      "main": [
+        [
+          {
+            "node": "AI Agent Manager1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "aguazul-customers-address": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent Manager1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "aguazul-prices": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent Manager1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis": {
+      "main": [
+        [
+          {
+            "node": "AI Agent Classifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "TextMemory",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "aguazul-prices1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent Manager",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "aguazul-business-information": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent Manager",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "5cc4c865-93f0-4fec-af69-d9dc0ea8a54a",
+  "meta": {
+    "instanceId": "[YOUR_INSTANCE_ID]"
+  },
+  "id": "0mSqgElzjEialLUP",
+  "tags": [
+    {
+      "name": "template",
+      "id": "LZ6DMrAl0SrIKQ1h",
+      "createdAt": "2025-08-04T21:27:58.529Z",
+      "updatedAt": "2025-08-04T21:27:58.529Z"
+    }
+  ]
+}
