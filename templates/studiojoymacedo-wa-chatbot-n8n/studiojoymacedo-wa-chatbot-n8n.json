@@ -1,0 +1,1223 @@
+{
+  "name": "WhatsApp AI Chatbot",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "your-webhook-path",
+        "options": {
+          "rawBody": false
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        160
+      ],
+      "id": "a8517c24-854a-42d9-9d3f-22393250d6a2",
+      "name": "trigger",
+      "webhookId": "YOUR_WEBHOOK_ID"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        960,
+        140
+      ],
+      "id": "95db2193-6d4e-4dc6-b643-8d297df44b21",
+      "name": "Wait",
+      "webhookId": "YOUR_WEBHOOK_ID"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9ebf4311-a022-4346-a865-d5117ec31243",
+              "name": "GetMemory1",
+              "value": "={{ $item(\"0\").$node[\"GetMomory1\"].json[\"GetMemory1\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "4e6efe96-d254-4aa6-8616-646c8bdaac2d",
+              "name": "GetMemory2",
+              "value": "={{ $item(\"0\").$node[\"GetMomory2\"].json[\"GetMemory2\"] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1300,
+        140
+      ],
+      "id": "24234cb9-85d1-4686-9e25-82a9bd75cb48",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "push",
+        "list": "={{ $item(\"0\").$node[\"trigger\"].json[\"body\"][\"data\"][\"key\"][\"remoteJid\"] }}",
+        "messageData": "={{ $item(\"0\").$node[\"trigger\"].json[\"body\"][\"data\"][\"message\"][\"conversation\"] }}",
+        "tail": true
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        600,
+        140
+      ],
+      "id": "1a661db7-d61a-40fb-957c-577baf8d7fa1",
+      "name": "TextMemory",
+      "credentials": {
+        "redis": {
+          "id": "YOUR_REDIS_CREDENTIAL_ID",
+          "name": "Your Redis Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "propertyName": "GetMemory1",
+        "key": "={{ $item(\"0\").$node[\"trigger\"].json[\"body\"][\"data\"][\"key\"][\"remoteJid\"] }}",
+        "keyType": "list",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        780,
+        140
+      ],
+      "id": "d5d44bf6-9772-4f87-b79e-656c3fd0512d",
+      "name": "GetMomory1",
+      "credentials": {
+        "redis": {
+          "id": "YOUR_REDIS_CREDENTIAL_ID",
+          "name": "Your Redis Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "propertyName": "GetMemory2",
+        "key": "={{ $item(\"0\").$node[\"trigger\"].json[\"body\"][\"data\"][\"key\"][\"remoteJid\"] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        140
+      ],
+      "id": "6aec5708-9129-4d24-90e3-1748dd97e030",
+      "name": "GetMomory2",
+      "credentials": {
+        "redis": {
+          "id": "YOUR_REDIS_CREDENTIAL_ID",
+          "name": "Your Redis Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Input: GetMemory2\nconst GetMemory2 = $item(\"0\").$node[\"Edit Fields\"].json[\"GetMemory2\"];\n\n// Check if GetMemory2 is an array; if not, convert it into an array\nconst memoryArray = Array.isArray(GetMemory2) ? GetMemory2 : JSON.parse(GetMemory2);\n\n// Transform the array into a single string joined by a space\nconst transformedString = memoryArray.join(\" \");\n\n// Return the result as a JSON object with transformedValue as a string\nreturn [{ json: { transformedValue: transformedString } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1700,
+        140
+      ],
+      "id": "a05d2c7f-9c4e-4bc8-af9e-169cfb7269bb",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $item(\"0\").$node[\"Code\"].json[\"transformedValue\"] }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "# General Description\n\n**IMPORTANT:** Always call the user by their name, as defined in the variable: {{ $('trigger').item.json.body.data.pushName }}\n\nYou are [Your Assistant Name], the virtual assistant of [Your Name] from [Your Company Name]. Your role is to provide support in a gentle, efficient, and professional manner, ensuring users receive clear and accurate information.\n\n## Tone & Communication Style:\n- Always respond in [Your Language, e.g., Portuguese].\n- Be friendly, welcoming, and professional.\n- Use emojis to make the conversation engaging.\n- Use line breaks to keep messages clean and readable.\n\nYour ultimate goal is to encourage users to book an appointment with [Your Name], but subtly—never being too obvious or pushy.\n\nWhen relevant, send the company's Instagram link to engage the audience:\nhttps://www.instagram.com/your-instagram-profile/\n(Always send the link on a separate line, without additional text, to ensure the preview loads.)\n\n### Address:\n**[Your Company Address]**\n\n📌 **Google Maps Link:**\n[Your Google Maps Link]\n\n---\n\n# FAQ - Treatments & Services\n\n## Trigger Condition:\n\nActivate when the user's message contains a question related to:\n- Procedures & Treatments at [Your Company Name] (e.g., \"[Service 1]\", \"[Service 2]\", \"[Service 3]\").\n- Service Costs (pricing inquiries).\n- Pre- and Post-Treatment Care or any other concerns regarding treatments.\n\n## Action to Perform:\n\nFetch the correct Google Doc based on the user's query:\n- **[Service 1]:** [google-doc-tool-name-1]\n- **[Service 2]:** [google-doc-tool-name-2]\n- **[Service 3]:** [google-doc-tool-name-3]\n- **Other Services:** [google-doc-tool-name-for-other-services]\n\n## Requirements:\n- Identify treatment-related questions accurately.\n- Provide precise and contextually relevant responses.\n- Apply consistently throughout the conversation.\n- Do not mention costs unless the user explicitly asks for them.\n\n**IMPORTANT:** Always call the user by their name:\n{{ $('trigger').item.json.body.data.pushName }}\n---\n\n# Handling Appointment Requests\n\n## Trigger Condition:\n\nActivate when the user asks to book an appointment (e.g., \"book appointment\", \"schedule\"), even with typos.\n\nBefore sending the appointment link, confirm with the customer if you can assist with their question before referring them to [Your Name].\n\n## Action to Perform:\n\n1. **Confirm Intent First:**\nBefore sending the appointment link, ask the user:\n👉 _\"Can I help you with any questions before you book with [Your Name]? I can often answer your questions quickly!_ [:smiley:]\"\n\n2. **If the User Says \"Yes\" (or has a question):**\n- Answer their question based on available information.\n- Only offer the appointment link if their question requires [Your Name]'s expertise.\n\n3. **If the User Insists on Booking:**\n- Show enthusiasm about their decision (e.g., \"[Your Name] will be delighted to see you! [:heart:]\").\n- Send the booking link:\n[Your Booking Link]\n---\n\n# Handling Appointment Cancellations\n\n## Trigger Condition:\n\nActivate when the user requests a cancellation (e.g., \"cancel appointment\", \"cancel\").\n\n## Action to Perform:\n- Acknowledge and empathize (e.g., \"We understand that plans change. No worries!\").\n- Inform the user that the cancellation link is in the confirmation email they received after booking.\n- Advise them to check their email and use the link to cancel the appointment.\n\n**IMPORTANT:** Always call the user by their name:\n{{ $('trigger').item.json.body.data.pushName }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        600,
+        520
+      ],
+      "id": "c865d738-2c43-465b-8d16-2d72943c26fa",
+      "name": "AI Agent",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "3e61922a-b6c5-4cb2-a6b2-6bba307d07cb",
+                    "leftValue": "",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        80,
+        80
+      ],
+      "id": "efcb0993-bf03-4ff3-9e83-c728957101bc",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('trigger').last().json.body.data.key.remoteJid }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        700,
+        800
+      ],
+      "id": "29b25bcd-516f-4c93-ab17-5b45338bbd17",
+      "name": "Window Buffer Memory"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "={{ $item(\"0\").$node[\"trigger\"].json[\"body\"][\"data\"][\"key\"][\"remoteJid\"] }}"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        2900,
+        520
+      ],
+      "id": "c9fd1ed9-f74d-4427-b7bf-210303aa15ce",
+      "name": "Redis",
+      "credentials": {
+        "redis": {
+          "id": "YOUR_REDIS_CREDENTIAL_ID",
+          "name": "Your Redis Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2040,
+        520
+      ],
+      "id": "7971d901-f78c-4bbe-93f2-33618efe92af",
+      "name": "Wait1",
+      "webhookId": "YOUR_WEBHOOK_ID"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $item(\"0\").$node[\"Edit Fields\"].json[\"GetMemory1\"] }}",
+                    "rightValue": "={{ $item(\"0\").$node[\"Edit Fields\"].json[\"GetMemory2\"] }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "6f3d18bf-e4db-4c1d-9e4a-74180d25cb30",
+                    "leftValue": "",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        1480,
+        140
+      ],
+      "id": "480bbd7e-66d2-4b20-82ec-126fb15661a4",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "content": "## Group of blocks to accept one or more than one user's message.\n",
+        "height": 320,
+        "width": 1840
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        20,
+        20
+      ],
+      "id": "6921f11d-ae26-43b1-8b38-eea8ad5eac56",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $item(\"0\").$node[\"AI Agent\"].json[\"output\"] }}",
+                    "rightValue": "=FLOW = TEMPLATE INTRODUCTION",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "INTRODUCTION"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "fd7d61aa-1d65-42d5-89bb-4b4b57c6dc63",
+                    "leftValue": "={{ $item(\"0\").$node[\"AI Agent\"].json[\"output\"] }}",
+                    "rightValue": "FLOW = BOT",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "BOT"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "9af86643-94d4-41e7-907e-064ff6a5933a",
+                    "leftValue": "",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "SERVICES REQUEST"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        980,
+        520
+      ],
+      "id": "3447382e-80ed-4ddf-aec7-46a0152f0992",
+      "name": "Switch2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://YOUR_EVOLUTION_API_URL/message/sendMedia/YOUR_INSTANCE_NAME",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $item(\"0\").$node[\"trigger\"].json[\"body\"][\"apikey\"] }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"number\": \"{{ $item(\"0\").$node[\"trigger\"].json[\"body\"][\"data\"][\"key\"][\"remoteJid\"] }}\",\n    \"mediatype\": \"image\", \n    \"mimetype\": \"image/png\",\n\"caption\": \"Hello, {{ $item(\"0\").$node[\"trigger\"].json[\"body\"][\"data\"][\"pushName\"] }}! Welcome to [Your Company Name]! 👩🏼‍⚕️✨\",\n    \"media\": \"[LINK_TO_YOUR_WELCOME_IMAGE]\", \n    \"fileName\": \"WelcomeImage.jpg\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1840,
+        520
+      ],
+      "id": "7f314c19-0eb4-4bc2-8232-2e52b72db244",
+      "name": "Initial Media"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://YOUR_EVOLUTION_API_URL/message/sendText/YOUR_INSTANCE_NAME",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $item(\"0\").$node[\"trigger\"].json[\"body\"][\"apikey\"] }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"number\": \"{{ $item(\"0\").$node[\"trigger\"].json[\"body\"][\"data\"][\"key\"][\"remoteJid\"] }}\",\n    \"text\": \"I am [Your Assistant Name], [Your Name]'s virtual assistant, and I'm here to help you with whatever you need! 😊\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2240,
+        520
+      ],
+      "id": "60fbdd94-f789-405f-8814-673a5065b419",
+      "name": "Bot Introduction"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://YOUR_EVOLUTION_API_URL/message/sendText/YOUR_INSTANCE_NAME",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $item(\"0\").$node[\"trigger\"].json[\"body\"][\"apikey\"] }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"number\": \"{{ $item(\"0\").$node[\"trigger\"].json[\"body\"][\"data\"][\"key\"][\"remoteJid\"] }}\",\n    \"text\": \"Here are a few ways I can help you:\\n\\n*Treatments and Questions* 💆‍♀️\\n*Schedule an Appointment* 📅\\n*Cancel an Appointment* ❌\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2680,
+        520
+      ],
+      "id": "19f73856-5947-40c6-a00d-1d428235fd68",
+      "name": "Initial Menu"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://YOUR_EVOLUTION_API_URL/message/sendText/YOUR_INSTANCE_NAME",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $('trigger').last().json.body.apikey }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"number\": \"{{ $('trigger').last().json.body.data.key.remoteJid }}\",\n  \"text\": \"{{ \n    // Replace newlines with escaped newline characters to avoid JSON parsing errors\n    $('AI Agent1').item.json.output\n      .replace(/(\\r\\n|\\n|\\r)/gm, '\\\\n') \n      // Escape double quotes to ensure the JSON structure is valid\n      .replace(/\"/g, '\\\\\"') \n  }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2640,
+        860
+      ],
+      "id": "a15d60e6-040b-4040-b159-a0ce65dc252e",
+      "name": "HTTP Request8"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "={{ $item(\"0\").$node[\"trigger\"].json[\"body\"][\"data\"][\"key\"][\"remoteJid\"] }}"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        2840,
+        860
+      ],
+      "id": "0749fd00-0564-421f-9c88-94e3e8c5da25",
+      "name": "Redis3",
+      "credentials": {
+        "redis": {
+          "id": "YOUR_REDIS_CREDENTIAL_ID",
+          "name": "Your Redis Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2460,
+        520
+      ],
+      "id": "884cefb1-5eca-495a-a21c-e190b31a0205",
+      "name": "Wait4",
+      "webhookId": "YOUR_WEBHOOK_ID"
+    },
+    {
+      "parameters": {
+        "content": "## Introductory messages",
+        "height": 300,
+        "width": 1420
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1720,
+        440
+      ],
+      "id": "32d6cfb0-93ac-499a-922e-8970125a1b09",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $item(\"0\").$node[\"Code\"].json[\"transformedValue\"] }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "# General Description\n\n**IMPORTANT:** Always call the user by their name, as defined in the variable: {{ $('trigger').item.json.body.data.pushName }}\n\nYou are [Your Assistant Name], the virtual assistant of [Your Name] from [Your Company Name]. Your role is to provide support in a gentle, efficient, and professional manner, ensuring users receive clear and accurate information.\n\n## Tone & Communication Style:\n- Always respond in [Your Language, e.g., Portuguese].\n- Be friendly, welcoming, and professional.\n- Use emojis to make the conversation engaging.\n- Use line breaks to keep messages clean and readable.\n\nYour ultimate goal is to encourage users to book an appointment with [Your Name], but subtly—never being too obvious or pushy.\n\nWhen relevant, send the company's Instagram link to engage the audience:\nhttps://www.instagram.com/your-instagram-profile/\n(Always send the link on a separate line, without additional text, to ensure the preview loads.)\n\n### Address:\n**[Your Company Address]**\n\n📌 **Google Maps Link:**\n[Your Google Maps Link]\n\n---\n\n# FAQ - Treatments & Services\n\n## Trigger Condition:\n\nActivate when the user's message contains a question related to:\n- Procedures & Treatments at [Your Company Name] (e.g., \"[Service 1]\", \"[Service 2]\", \"[Service 3]\").\n- Service Costs (pricing inquiries).\n- Pre- and Post-Treatment Care or any other concerns regarding treatments.\n\n## Action to Perform:\n\nFetch the correct Google Doc based on the user's query:\n- **[Service 1]:** [google-doc-tool-name-1]\n- **[Service 2]:** [google-doc-tool-name-2]\n- **[Service 3]:** [google-doc-tool-name-3]\n- **Other Services:** [google-doc-tool-name-for-other-services]\n\n## Requirements:\n- Identify treatment-related questions accurately.\n- Provide precise and contextually relevant responses.\n- Apply consistently throughout the conversation.\n- Do not mention costs unless the user explicitly asks for them.\n\n**IMPORTANT:** Always call the user by their name:\n{{ $('trigger').item.json.body.data.pushName }}\n---\n\n# Handling Appointment Requests\n\n## Trigger Condition:\n\nActivate when the user asks to book an appointment (e.g., \"book appointment\", \"schedule\"), even with typos.\n\nBefore sending the appointment link, confirm with the customer if you can assist with their question before referring them to [Your Name].\n\n## Action to Perform:\n\n1. **Confirm Intent First:**\nBefore sending the appointment link, ask the user:\n👉 _\"Can I help you with any questions before you book with [Your Name]? I can often answer your questions quickly!_ [:smiley:]\"\n\n2. **If the User Says \"Yes\" (or has a question):**\n- Answer their question based on available information.\n- Only offer the appointment link if their question requires [Your Name]'s expertise.\n\n3. **If the User Insists on Booking:**\n- Show enthusiasm about their decision (e.g., \"[Your Name] will be delighted to see you! [:heart:]\").\n- Send the booking link:\n[Your Booking Link]\n---\n\n# Handling Appointment Cancellations\n\n## Trigger Condition:\n\nActivate when the user requests a cancellation (e.g., \"cancel appointment\", \"cancel\").\n\n## Action to Perform:\n- Acknowledge and empathize (e.g., \"We understand that plans change. No worries!\").\n- Inform the user that the cancellation link is in the confirmation email they received after booking.\n- Advise them to check their email and use the link to cancel the appointment.\n\n**IMPORTANT:** Always call the user by their name:\n{{ $('trigger').item.json.body.data.pushName }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        2040,
+        860
+      ],
+      "id": "175f282f-578c-4c4b-a88b-7ef4440b8356",
+      "name": "AI Agent1",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('trigger').last().json.body.data.key.remoteJid }}",
+        "contextWindowLength": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        2060,
+        1080
+      ],
+      "id": "0d1d0def-5386-45f2-97b1-ce520939f357",
+      "name": "Window Buffer Memory1"
+    },
+    {
+      "parameters": {
+        "content": "## Bot Manager",
+        "height": 560,
+        "width": 1420
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1720,
+        780
+      ],
+      "id": "31325baf-7f31-4904-acad-f830d88fc438",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Bot Classificador",
+        "height": 520,
+        "width": 1060
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        260,
+        440
+      ],
+      "id": "4aae83b7-5c1e-41c4-b392-141547b11586",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "model": "deepseek-reasoner",
+        "options": {
+          "baseURL": "https://api.deepseek.com/v1"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        480,
+        800
+      ],
+      "id": "d2c83168-1759-4598-885a-4b11ed13ddf6",
+      "name": "DeepSeek",
+      "notesInFlow": false,
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_DEEPSEEK_API_KEY",
+          "name": "Your DeepSeek API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        320,
+        800
+      ],
+      "id": "7422f142-e549-458c-a264-24f0b63db466",
+      "name": "OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_OPENAI_API_KEY",
+          "name": "Your OpenAI API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        1760,
+        1020
+      ],
+      "id": "c7266a80-7f63-43ed-9b8b-41a8839939c8",
+      "name": "OpenAI1",
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_OPENAI_API_KEY",
+          "name": "Your OpenAI API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "={{ $item(\"0\").$node[\"trigger\"].json[\"body\"][\"data\"][\"key\"][\"remoteJid\"] }}"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1880,
+        160
+      ],
+      "id": "276a457b-72d5-4dfc-870a-c9862b0761b6",
+      "name": "Redis4",
+      "credentials": {
+        "redis": {
+          "id": "YOUR_REDIS_CREDENTIAL_ID",
+          "name": "Your Redis Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "={{ $item(\"0\").$node[\"trigger\"].json[\"body\"][\"data\"][\"key\"][\"remoteJid\"] }}"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -340,
+        1000
+      ],
+      "id": "5dc89c01-bfac-4efb-82ae-a30cbc0324ef",
+      "name": "Redis5",
+      "credentials": {
+        "redis": {
+          "id": "YOUR_REDIS_CREDENTIAL_ID",
+          "name": "Your Redis Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Consume Google Docs API with information about tratamento caminho de volta",
+        "operation": "get",
+        "documentURL": "YOUR_GOOGLE_DOC_ID"
+      },
+      "type": "n8n-nodes-base.googleDocsTool",
+      "typeVersion": 2,
+      "position": [
+        2260,
+        1080
+      ],
+      "id": "ef7176a0-7607-459a-9754-2ee4162ff9ab",
+      "name": "google-doc-tool-name-1",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "YOUR_GOOGLE_DOCS_CREDENTIAL_ID",
+          "name": "Your Google Docs Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Consume Google Docs API with information about tratamento FPF",
+        "operation": "get",
+        "documentURL": "YOUR_GOOGLE_DOC_ID"
+      },
+      "type": "n8n-nodes-base.googleDocsTool",
+      "typeVersion": 2,
+      "position": [
+        2420,
+        1080
+      ],
+      "id": "3b2c6a1e-552c-4fb5-a151-47027142a068",
+      "name": "google-doc-tool-name-2",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "YOUR_GOOGLE_DOCS_CREDENTIAL_ID",
+          "name": "Your Google Docs Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Consume Google Docs API with information about tratamento Natureza Divina",
+        "operation": "get",
+        "documentURL": "YOUR_GOOGLE_DOC_ID"
+      },
+      "type": "n8n-nodes-base.googleDocsTool",
+      "typeVersion": 2,
+      "position": [
+        2600,
+        1100
+      ],
+      "id": "a020c592-6328-480c-98ee-533a0b90ed71",
+      "name": "google-doc-tool-name-3",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "YOUR_GOOGLE_DOCS_CREDENTIAL_ID",
+          "name": "Your Google Docs Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Consume Google Docs API with information about Servicos Studio Joyce Macedo",
+        "operation": "get",
+        "documentURL": "YOUR_GOOGLE_DOC_ID"
+      },
+      "type": "n8n-nodes-base.googleDocsTool",
+      "typeVersion": 2,
+      "position": [
+        2800,
+        1120
+      ],
+      "id": "d0271ca6-f48b-459b-b11b-f06b78c5983d",
+      "name": "google-doc-tool-name-for-other-services",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "YOUR_GOOGLE_DOCS_CREDENTIAL_ID",
+          "name": "Your Google Docs Account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "trigger": [
+      {
+        "json": {
+          "headers": {
+            "host": "webhookn8n.vianalytics.tech",
+            "user-agent": "axios/1.7.7",
+            "content-length": "897",
+            "accept-encoding": "gzip, compress, deflate, br",
+            "content-type": "application/json",
+            "x-forwarded-for": "172.18.0.1",
+            "x-forwarded-host": "webhookn8n.vianalytics.tech",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "9703c47c2f72",
+            "x-real-ip": "172.18.0.1"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "event": "messages.upsert",
+            "instance": "YOUR_INSTANCE_NAME",
+            "data": {
+              "key": {
+                "remoteJid": "SENDER_WHATSAPP_NUMBER@s.whatsapp.net",
+                "fromMe": false,
+                "id": "MESSAGE_ID"
+              },
+              "pushName": "User Name",
+              "status": "DELIVERY_ACK",
+              "message": {
+                "conversation": "Hello",
+                "messageContextInfo": {
+                  "deviceListMetadata": {
+                    "senderKeyHash": "someHashValue==",
+                    "senderTimestamp": "1740515450",
+                    "recipientKeyHash": "anotherHashValue==",
+                    "recipientTimestamp": "1739961733"
+                  },
+                  "deviceListMetadataVersion": 2,
+                  "messageSecret": "aMessageSecretValue="
+                }
+              },
+              "messageType": "conversation",
+              "messageTimestamp": 1741818027,
+              "instanceId": "YOUR_INSTANCE_ID",
+              "source": "ios"
+            },
+            "destination": "https://YOUR_N8N_URL/webhook/your-webhook-path",
+            "date_time": "2025-03-12T19:20:28.376Z",
+            "sender": "YOUR_WHATSAPP_BUSINESS_NUMBER@s.whatsapp.net",
+            "server_url": "https://YOUR_EVOLUTION_API_URL",
+            "apikey": "YOUR_EVOLUTION_API_KEY"
+          },
+          "webhookUrl": "https://YOUR_N8N_URL/webhook/your-webhook-path",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "trigger": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "GetMomory2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TextMemory": {
+      "main": [
+        [
+          {
+            "node": "GetMomory1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GetMomory1": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GetMomory2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Redis4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "TextMemory",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Switch2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "Bot Introduction",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis": {
+      "main": [
+        []
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Switch2": {
+      "main": [
+        [
+          {
+            "node": "Initial Media",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Initial Media": {
+      "main": [
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Bot Introduction": {
+      "main": [
+        [
+          {
+            "node": "Wait4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Initial Menu": {
+      "main": [
+        [
+          {
+            "node": "Redis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request8": {
+      "main": [
+        [
+          {
+            "node": "Redis3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait4": {
+      "main": [
+        [
+          {
+            "node": "Initial Menu",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DeepSeek": {
+      "ai_languageModel": [
+        []
+      ]
+    },
+    "OpenAI": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis4": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "tratamento-caminho-de-volta": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "tratamento-fpf": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "tratamento-natureza-divina": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "servicos-studio-joyce-macedo": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "bd2660fc-ce5d-4753-9ecb-246957d6a4c5",
+  "meta": {
+    "instanceId": "3e52bb5120dd343a0f14c058ead8f8920f2a26dabe38f06d535d69e6800da0fb"
+  },
+  "id": "gCApWKyClOpe9BtY",
+  "tags": [
+    {
+      "createdAt": "2025-01-22T23:33:14.848Z",
+      "updatedAt": "2025-01-22T23:33:14.848Z",
+      "id": "b0nAEF4UygJXX4KR",
+      "name": "DEV"
+    }
+  ]
+}
