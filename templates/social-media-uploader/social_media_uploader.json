@@ -1,0 +1,451 @@
+{
+  "name": "social-media-uploader",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "mode": "list",
+          "value": "YOUR_GOOGLE_DRIVE_FOLDER_ID",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/YOUR_GOOGLE_DRIVE_FOLDER_ID",
+          "cachedResultName": "Your Google Drive Folder Name"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "id": "ccbcf19b-3833-4865-a4c2-2722954a2cc7",
+      "name": "Google Drive Trigger",
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "position": [
+        3220,
+        1540
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "mode": "",
+          "value": "={{ $json.id || $json.data[0].id }}"
+        },
+        "options": {}
+      },
+      "id": "262c77db-914e-496f-9647-afbc6a8db8b4",
+      "name": "Google Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "position": [
+        3400,
+        1540
+      ],
+      "retryOnFail": true,
+      "typeVersion": 1,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {},
+      "id": "d14775c1-6896-49b7-a88c-8e8866c84601",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "position": [
+        3620,
+        1880
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_TELEGRAM_CHAT_ID",
+        "text": "=🔔 ERROR UPLOADING VIDEOS",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "d0ef97ac-e54f-4abb-a369-1904de664f5b",
+      "name": "Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        3960,
+        1860
+      ],
+      "webhookId": "f6729386-9905-45f1-800f-4fe01a06ac9c",
+      "retryOnFail": true,
+      "typeVersion": 1.2,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 1,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "9fadb3fd-2547-42bd-8f40-f410a97dcf57",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              },
+              "leftValue": "={{ $json.trigger.error.message }}",
+              "rightValue": "The DNS server returned an error, perhaps the server is offline"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "18b1f391-1c32-4ffe-97f0-1886d93c4be0",
+      "name": "If",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        3760,
+        1880
+      ],
+      "typeVersion": 2.1
+    },
+    {
+      "parameters": {
+        "content": "## Overview\nThis automation lets you drop a video into a specific Google Drive folder, then automatically creates descriptions and publishes it on Instagram and TikTok.\n\n## How to Use\n1. Get an API token from **upload-post.com** and add it to the *Upload to TikTok* and *Upload to Instagram* nodes.  \n2. Set up your Google Drive folder for uploads.  \n3. Edit the OpenAI prompt to fit your desired style and purpose.  \n4. *(Optional)* Configure Telegram to receive notifications if errors occur.  \n\n## Requirements\n- Account on **upload-post.com**  \n- Google Drive account  \n- OpenAI API key",
+        "height": 260,
+        "width": 860,
+        "color": 5
+      },
+      "id": "e789b5f1-7d9d-4a2b-a5b7-9eae25de9cc2",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2780,
+        1220
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {}
+      },
+      "id": "d98aa2da-0164-4a3d-a472-7132126ac765",
+      "name": "Get Audio from Video",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "position": [
+        3860,
+        1540
+      ],
+      "notesInFlow": true,
+      "retryOnFail": true,
+      "typeVersion": 1,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "openAiaiApi": {
+          "id": "F0IiuPTDVRfPrJhm",
+          "name": "Your OpenAI API Key Name"
+        }
+      },
+      "notes": "Extract the audio from video for generate the description"
+    },
+    {
+      "parameters": {
+        "fileName": "={{ $json.originalFilename.replaceAll(\" \", \"_\") }}",
+        "options": {}
+      },
+      "id": "0c1cfc60-751b-4cc1-a1a9-298058b2d2ae",
+      "name": "Read video from Google Drive",
+      "type": "n8n-nodes-base.writeBinaryFile",
+      "position": [
+        3580,
+        1540
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o",
+          "cachedResultName": "GPT-4O"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "You are an expert assistant in creating engaging social media video titles.",
+              "role": "system"
+            },
+            {
+              "content": "=I’ll be posting a video on social media. Below are some examples of Instagram captions that have performed well:\n\nSave this post and check out [Your Brand/Product Name], the AI platform that creates and publishes TikTok videos automatically to drive traffic to your site. Ideal for business owners and brands.\n#digitalmarketing #ugc #tiktok #ai #[yourbrand] #contentcreation\n\nExperience the next wave of video marketing with [Your Brand/Product Name]!\n.\n.\n.\n#socialmedia #videomarketing #ai #tiktok #[yourbrand] #growthhacking\n\nDon’t miss out on [Your Brand/Product Name] — the tool that upgrades your marketing game with just one click!\n.\n.\n.\n#ugc #ai #tiktok #digitalmarketing #[yourbrand] #branding\n\nNow, create a new caption for the Instagram post using the following audio transcription from the video:\n\nAudio: {{ $(‘Get Audio from Video’).item.json.text }}\n\nIMPORTANT: Provide only the caption text — no extra comments or explanations."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "671410aa-665f-4bee-8075-3bfc99e89be2",
+      "name": "Generate Description for Videos in Tiktok and Instagram",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "position": [
+        4060,
+        1540
+      ],
+      "notesInFlow": true,
+      "retryOnFail": true,
+      "typeVersion": 1.4,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "openAiApi": {
+          "id": "F0IiuPTDVRfPrJhm",
+          "name": "Your OpenAI API Key Name"
+        }
+      },
+      "notes": "Request to OpenAi for generate description with the audio extracted from the video"
+    },
+    {
+      "parameters": {
+        "filePath": "={{ $('Read video from Google Drive').item.json.originalFilename.replaceAll(\" \", \"_\") }}",
+        "dataPropertyName": "datavideo"
+      },
+      "id": "33de2f56-3acb-4e9f-96a0-f1497df44075",
+      "name": "Read Video from Google Drive",
+      "type": "n8n-nodes-base.readBinaryFile",
+      "position": [
+        4620,
+        1320
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "filePath": "={{ $('Read video from Google Drive').item.json.originalFilename.replaceAll(\" \", \"_\") }}",
+        "dataPropertyName": "datavideo"
+      },
+      "id": "b258fd60-a7c8-49f0-aa42-6883d1a81150",
+      "name": "Read Video from Google Drive2",
+      "type": "n8n-nodes-base.readBinaryFile",
+      "position": [
+        4620,
+        1680
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.upload-post.com/api/upload",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "title",
+              "value": "={{ $('Generate Description for Videos in Tiktok and Instagram').item.json.message.content.replaceAll(\"\\\"\", \"\") }}"
+            },
+            {
+              "name": "platform[]",
+              "value": "tiktok"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "video",
+              "inputDataFieldName": "datavideo"
+            },
+            {
+              "name": "user",
+              "value": "Add user generated in upload-post"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f6f1b6fa-aa9e-4e1c-a376-74a36d5ea5c8",
+      "name": "Upload Video and Description to Tiktok",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        4880,
+        1320
+      ],
+      "notesInFlow": true,
+      "typeVersion": 4.2,
+      "notes": "Generate in upload-post.com the token and add to the credentials in the header-> Authorization: Apikey (token here)"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.upload-post.com/api/upload",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "title",
+              "value": "={{ $('Generate Description for Videos in Tiktok and Instagram').item.json.message.content.replaceAll(\"\\\"\", \"\") }}"
+            },
+            {
+              "name": "platform[]",
+              "value": "instagram"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "video",
+              "inputDataFieldName": "datavideo"
+            },
+            {
+              "name": "user",
+              "value": "Add user generated in upload-post"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "72cac629-d788-407e-9ae3-6745241dbee0",
+      "name": "Upload Video and Description to Instagram",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        4880,
+        1680
+      ],
+      "notesInFlow": true,
+      "typeVersion": 4.2,
+      "notes": "Generate in upload-post.com the token and add to the credentials in the header-> Authorization: Apikey (token here)"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive": {
+      "main": [
+        [
+          {
+            "node": "Read video from Google Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Audio from Video": {
+      "main": [
+        [
+          {
+            "node": "Generate Description for Videos in Tiktok and Instagram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive Trigger": {
+      "main": [
+        [
+          {
+            "node": "Google Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Video from Google Drive": {
+      "main": [
+        [
+          {
+            "node": "Upload Video and Description to Tiktok",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read video from Google Drive": {
+      "main": [
+        [
+          {
+            "node": "Get Audio from Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Video from Google Drive2": {
+      "main": [
+        [
+          {
+            "node": "Upload Video and Description to Instagram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Description for Videos in Tiktok and Instagram": {
+      "main": [
+        [
+          {
+            "node": "Read Video from Google Drive",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Read Video from Google Drive2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "0f3c9b0d-7008-40e4-ab24-efffd66c98b9",
+  "meta": {
+    "instanceId": "3e52bb5120dd343a0f14c058ead8f8920f2a26dabe38f06d535d69e6800da0fb"
+  },
+  "id": "3BBjlluNT5WBZ1ac",
+  "tags": [
+    {
+      "name": "template",
+      "id": "LZ6DMrAl0SrIKQ1h",
+      "createdAt": "2025-08-04T21:27:58.529Z",
+      "updatedAt": "2025-08-04T21:27:58.529Z"
+    }
+  ]
+}
