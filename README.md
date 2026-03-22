@@ -1,6 +1,6 @@
 # n8n Workflows Templates
 
-This repo contains n8n workflow templates I created to solve real-world automation tasks—either for personal or freelance projects.
+This repo contains n8n workflows templates I created to solve real-world automation tasks, either for personal or freelance projects.
 
 ## Structure
 
